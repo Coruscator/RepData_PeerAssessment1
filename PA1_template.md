@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 ***
 ## Loading and preprocessing the data
@@ -11,19 +6,22 @@ output:
 
 *  ##### Unzipping the file:
 
-```{r, echo = TRUE}
+
+```r
 unzip("activity.zip")
 ```
 
 *  ##### Load the file into a data frame:
 
-```{r, echo = TRUE}
+
+```r
 activitydata <- read.csv("activity.csv")
 ```
 
 *  ##### Modifying the columns of the data frame to proper classes:
 
-```{r, echo = TRUE}
+
+```r
 activitydata <- transform(activitydata, date = as.Date(date))
 ```
 
@@ -33,13 +31,15 @@ activitydata <- transform(activitydata, date = as.Date(date))
 
 *  ##### Total Number of steps taken per day:
 
-```{r, echo = TRUE}
+
+```r
 stepsPerDay <- with(activitydata, tapply(steps, date, sum, na.rm = TRUE))
 ```
 
 *  ##### Histogram of Total steps taken per day:
 
-```{r, echo = TRUE}
+
+```r
 hist(stepsPerDay, col ="red", breaks = seq(0, 25000, by = 2500),
      main = "Histogram for Total Steps taken per Day")
 abline(v = mean(stepsPerDay, na.rm = TRUE), col = "blue", lwd = 2)
@@ -47,21 +47,25 @@ abline(v = median(stepsPerDay, na.rm = TRUE), col = "green", lwd = 2)
 legend("topright", legend = c("Mean", "Median"), lty = 1, col = c("blue", "green"))
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
 *  ##### Mean and Median of Total steps taken per day:
 
-```{r, echo = TRUE}
+
+```r
 mean = mean(stepsPerDay, na.rm = TRUE)
 median = median(stepsPerDay, na.rm = TRUE)
 ```
-> * Mean = **`r mean`**   
-> * Median = **`r median`**
+> * Mean = **9354.2295082**   
+> * Median = **10395**
 
 ***
 ## What is the average daily activity pattern?
 ***
 
 *  ##### The average number of steps taken for each 5 min interval, averaged across all days:
-```{r, echo = TRUE}
+
+```r
 intervalSteps <- with(activitydata, tapply(steps, interval, mean, na.rm = T))
 
 # Make intervalSteps into a data frame
@@ -71,19 +75,23 @@ intervalStepsDF <- data.frame("interval" = as.numeric(names(intervalSteps)),
 
 *  ##### Time series plot of 5-minute interval (x-axis) and steps (y-axis):
 
-```{r, echo = TRUE}
+
+```r
 with(intervalStepsDF, plot(interval, steps, type = "l", xlab = "5 - minute Intervals",
                            ylab = "Average Steps across Days", 
                            main = "Time Series Plot"))
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
+
 *  ##### Which 5-minute interval contains the maximum number of steps:
 
-```{r, echo = TRUE}
+
+```r
 maxIntervalValue = intervalStepsDF[rev(order(intervalStepsDF$steps)), 1][1]
 ```
 > * The 5 - minute interval on average across all days that contains the maximum
-number of steps is: **`r maxIntervalValue`**
+number of steps is: **835**
 
 ***
 ## Imputing missing values
@@ -91,39 +99,44 @@ number of steps is: **`r maxIntervalValue`**
 
 *  ##### Total number of missing values in the dataset:
 
-```{r, echo = TRUE}
+
+```r
 numOfMissingValues <- sum(!complete.cases(activitydata))
 ```
 
-> * Missing values in dataset: **`r numOfMissingValues`**
+> * Missing values in dataset: **2304**
 
 *  ##### Strategy:
 Fill the missing values with average steps for 5-minute intervals across days.
-```{r, echo = TRUE}
+
+```r
 ## Creating the new dataset with imputed missing values
 fillData <- activitydata
 fillData$steps <- ifelse(is.na(fillData$steps), 
                          intervalStepsDF[as.character(fillData$interval),2], 
                          as.numeric(fillData$steps))
-
 ```
 
 * ##### Histogram of total number of steps taken each day:
 
-```{r, echo = TRUE}
+
+```r
 stepsPerDayForFilledData <- with(fillData, tapply(steps, date, sum))
 hist(stepsPerDayForFilledData, col ="red", breaks = seq(0, 25000, by = 2500), 
      main = "Histogram for Total Steps taken per Day for filled data")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+
 *  ##### Mean and Median of Total steps taken per day:
 
-```{r, echo = TRUE}
+
+```r
 meanForFilledData = mean(stepsPerDayForFilledData)
 medianForFilledData = median(stepsPerDayForFilledData)
 ```
-> * Mean = **`r meanForFilledData`**   
-> * Median = **`r medianForFilledData`**
+> * Mean = **1.0766189\times 10^{4}**   
+> * Median = **1.0766189\times 10^{4}**
 > * This values differ from the estimates when the missing values where removed.
 
 * ##### Impact of imputing missing data on the estimates of the total daily number of steps:
@@ -139,7 +152,8 @@ removing the left skewness that existed before because of missing values.
 
 * ##### Factor variable for weekdays and weekends:
 
-```{r, echo = TRUE}
+
+```r
 fillData$weekendCheck <- ifelse(weekdays(fillData$date) == "Saturday" | 
                                 weekdays(fillData$date) == "Sunday", 
                                 "weekend", "weekday")
@@ -147,7 +161,8 @@ fillData$weekendCheck <- ifelse(weekdays(fillData$date) == "Saturday" |
 
 * ##### Panel plot for average steps for 5-minute intervals for Weekdays and Weekends:
 
-```{r, echo = TRUE}
+
+```r
 intervalStepsWeekDays <- with(fillData, {
         fillDataNew <- transform(fillData, interval = factor(interval), 
                                  weekendCheck = factor(weekendCheck))
@@ -169,4 +184,6 @@ xyplot(steps~interval | weekendCheck,
        ylab = "Number of steps", 
        type = "l")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-15-1.png) 
 
